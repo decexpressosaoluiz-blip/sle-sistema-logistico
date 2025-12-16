@@ -6,11 +6,15 @@ export const analyzeData = async (ctes: CTE[], context: string): Promise<string>
     let apiKey = '';
     
     try {
+        // Tenta ler via process.env (injetado pelo vite.config.ts)
         // @ts-ignore
         if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-            // @ts-ignore
-            apiKey = process.env.API_KEY;
-        } else if (import.meta.env && import.meta.env.VITE_API_KEY) {
+             // @ts-ignore
+             apiKey = process.env.API_KEY;
+        }
+        
+        // Se falhar, tenta via import.meta.env (Padrão Vite)
+        if (!apiKey && import.meta.env && import.meta.env.VITE_API_KEY) {
             apiKey = import.meta.env.VITE_API_KEY;
         }
     } catch (e) {
@@ -19,7 +23,7 @@ export const analyzeData = async (ctes: CTE[], context: string): Promise<string>
 
     if (!apiKey) {
         console.error("Gemini API Key ausente.");
-        return "Erro de Configuração: Chave de API da IA não detectada. Adicione VITE_API_KEY ou API_KEY nas variáveis de ambiente.";
+        return "⚠️ Configuração Necessária: Chave de API da IA não detectada. Configure a variável 'API_KEY' no painel da Vercel.";
     }
 
     try {
@@ -31,16 +35,16 @@ export const analyzeData = async (ctes: CTE[], context: string): Promise<string>
         ).join('\n');
 
         const prompt = `
-        Atue como Consultor Logístico.
+        Atue como Consultor Logístico Sênior.
         Contexto: ${context}
         
-        Dados Resumidos:
+        Dados de Amostra (Top 30):
         ${summary}
         
-        Forneça uma análise curta e estratégica em Markdown (máx 3 tópicos):
-        1. Gargalo Principal
-        2. Ação Recomendada
-        3. Previsão de Impacto
+        Gere uma análise executiva em Markdown (máx 3 parágrafos curtos):
+        1. Identifique o maior gargalo atual.
+        2. Sugira uma ação imediata para a equipe.
+        3. Estime o impacto financeiro se resolvido.
         `;
 
         const response = await ai.models.generateContent({
@@ -56,6 +60,6 @@ export const analyzeData = async (ctes: CTE[], context: string): Promise<string>
 
     } catch (error: any) {
         console.error("Gemini Service Error:", error);
-        return `Serviço Indisponível: ${error.message || 'Erro desconhecido na IA'}.`;
+        return `Serviço Indisponível: ${error.message || 'Erro desconhecido na IA'}. Verifique se a API Key na Vercel é válida.`;
     }
 };
