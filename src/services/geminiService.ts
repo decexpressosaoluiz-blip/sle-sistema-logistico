@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import { CTE } from "../types";
 
 export const analyzeData = async (ctes: CTE[], context: string): Promise<string> => {
@@ -25,12 +25,9 @@ export const analyzeData = async (ctes: CTE[], context: string): Promise<string>
     }
 
     try {
-        // Inicializa a SDK correta para Web/React
-        const genAI = new GoogleGenerativeAI(apiKey);
+        // Inicializa a SDK correta (@google/genai)
+        const ai = new GoogleGenAI({ apiKey });
         
-        // Utiliza o modelo flash padrão (1.5) que é mais rápido e econômico
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
         // Limita o tamanho do payload para economizar tokens e evitar erros de tamanho
         const summary = ctes.slice(0, 30).map(c => 
             `CTE:${c.cteNumber}|St:${c.status}|Val:${c.value}|Unit:${c.deliveryUnit}`
@@ -49,18 +46,20 @@ export const analyzeData = async (ctes: CTE[], context: string): Promise<string>
         3. Estime o impacto financeiro se resolvido.
         `;
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
+        // Utiliza o modelo mais recente gemini-2.5-flash
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt
+        });
 
-        if (text) {
-             return text;
+        if (response.text) {
+             return response.text;
         }
         
         return "A IA processou os dados mas não retornou texto legível.";
 
     } catch (error: any) {
         console.error("Gemini Service Error:", error);
-        return `Serviço Indisponível: ${error.message || 'Erro desconhecido na IA'}. Verifique se a API Key na Vercel é válida.`;
+        return `Serviço Indisponível: ${error.message || 'Erro desconhecido na IA'}. Verifique se a API Key na Vercel é válida e se o modelo está acessível.`;
     }
 };
