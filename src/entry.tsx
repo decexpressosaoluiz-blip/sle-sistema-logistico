@@ -1,1 +1,1 @@
-// DELETED: Entry point moved to ../root.tsx
+// Deleted: Obsolete file

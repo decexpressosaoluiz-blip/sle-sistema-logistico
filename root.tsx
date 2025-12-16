@@ -1,1 +1,1 @@
-// DELETED: Moved to src/main.tsx
+// Deleted: Obsolete file
