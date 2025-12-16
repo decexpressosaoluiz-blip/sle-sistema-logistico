@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { CTE } from "../types";
 
 export const analyzeData = async (ctes: CTE[], context: string): Promise<string> => {
@@ -27,7 +27,11 @@ export const analyzeData = async (ctes: CTE[], context: string): Promise<string>
     }
 
     try {
-        const ai = new GoogleGenAI({ apiKey: apiKey });
+        // Inicializa a SDK correta para Web/React
+        const genAI = new GoogleGenerativeAI(apiKey);
+        
+        // Utiliza o modelo flash padrão (1.5) que é mais rápido e econômico
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         // Limita o tamanho do payload para economizar tokens e evitar erros de tamanho
         const summary = ctes.slice(0, 30).map(c => 
@@ -47,13 +51,12 @@ export const analyzeData = async (ctes: CTE[], context: string): Promise<string>
         3. Estime o impacto financeiro se resolvido.
         `;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt,
-        });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
 
-        if (response && response.text) {
-             return response.text;
+        if (text) {
+             return text;
         }
         
         return "A IA processou os dados mas não retornou texto legível.";
