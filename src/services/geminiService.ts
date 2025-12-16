@@ -6,19 +6,17 @@ export const analyzeData = async (ctes: CTE[], context: string): Promise<string>
     let apiKey = '';
     
     try {
-        // Tenta ler via process.env (injetado pelo vite.config.ts)
+        // 1. Tenta ler via injeção do Vite (configurado no vite.config.ts)
+        // O bundler substitui 'process.env.API_KEY' pelo valor string real.
         // @ts-ignore
-        if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-             // @ts-ignore
-             apiKey = process.env.API_KEY;
-        }
-        
-        // Se falhar, tenta via import.meta.env (Padrão Vite)
-        if (!apiKey && import.meta.env && import.meta.env.VITE_API_KEY) {
-            apiKey = import.meta.env.VITE_API_KEY;
-        }
+        apiKey = process.env.API_KEY;
     } catch (e) {
-        console.warn("Erro ao ler variáveis de ambiente", e);
+        // Ignora erros de referência se a substituição não ocorrer
+    }
+
+    // 2. Fallback para padrão VITE_ (import.meta.env)
+    if (!apiKey && import.meta.env && import.meta.env.VITE_API_KEY) {
+        apiKey = import.meta.env.VITE_API_KEY;
     }
 
     if (!apiKey) {
